@@ -29,7 +29,9 @@
  */
 
 #import "SecureUDID.h"
-#import <UIKit/UIKit.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#import <UIKit/UIPasteboard.h>
+#endif
 #import <CommonCrypto/CommonCryptor.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <sys/sysctl.h>
@@ -379,7 +381,8 @@ NSString *SUUIDPasteboardNameForNumber(NSInteger number) {
  Returns the data dictionary, or nil on failure.
  */
 NSDictionary *SUUIDDictionaryForStorageLocation(NSInteger number) {
-    id            decodedObject;
+    id            decodedObject=nil;
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     UIPasteboard* pasteboard;
     NSData*       data;
     
@@ -413,7 +416,9 @@ NSDictionary *SUUIDDictionaryForStorageLocation(NSInteger number) {
         
         return nil;
     }
+#else
     
+#endif
     return decodedObject;
 }
 
@@ -454,6 +459,7 @@ NSDictionary *SUUIDMostRecentDictionary(void) {
  created if is didn't already exist.
  */
 void SUUIDWriteDictionaryToStorageLocation(NSInteger number, NSDictionary* dictionary) {
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     UIPasteboard* pasteboard;
     
     // be sure to respect our limits
@@ -475,6 +481,7 @@ void SUUIDWriteDictionaryToStorageLocation(NSInteger number, NSDictionary* dicti
     
     [pasteboard setData:[NSKeyedArchiver archivedDataWithRootObject:dictionary]
       forPasteboardType:SUUIDTypeDataDictionary];
+#endif
 }
 
 /*
@@ -482,6 +489,8 @@ void SUUIDWriteDictionaryToStorageLocation(NSInteger number, NSDictionary* dicti
  potential corruption.  Be careful with this function, as it can remove Opt-Out markers.
 */
 void SUUIDDeleteStorageLocation(NSInteger number) {
+    
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     UIPasteboard* pasteboard;
     NSString*     name;
     
@@ -499,6 +508,7 @@ void SUUIDDeleteStorageLocation(NSInteger number) {
     // like the safest thing to do
     [pasteboard setData:nil forPasteboardType:SUUIDTypeDataDictionary];
     [UIPasteboard removePasteboardWithName:name];
+#endif
 }
 
 /*
